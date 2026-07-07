@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: devpilot-backend
+  profiles:
+    active: local  #시작 시 application-local.yml 자동 로드
+
+server:
+  port: 8080
