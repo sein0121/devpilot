@@ -24,9 +24,14 @@ public class UserController {
         return ApiResponse.success(userService.createUser(request));
     }
 
-    @GetMapping("/{id}")
+    @GetMapping
     public ApiResponse<List<UserResponse>> getUsers() {
         return ApiResponse.success(userService.getUsers());
+    }
+    
+    @GetMapping("/{id}")
+    public ApiResponse<UserResponse> getUser(@PathVariable Long id) {
+        return ApiResponse.success(userService.getUser(id));
     }
 
     @PutMapping("/{id}")
