@@ -30,7 +30,8 @@ public class UserService {
         }
 
         // Request DTO -> Entity 변환
-        User user = new User(request.getEmail(), request.getNickname());
+        // User user = new User(request.getEmail(), request.getNickname());
+        User user = User.createLocalUser(request.getEmail(), request.getNickname());
         return UserResponse.from(userRepository.save(user));
     }
 

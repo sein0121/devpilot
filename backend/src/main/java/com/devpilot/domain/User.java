@@ -30,9 +30,31 @@ public class User {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    public User(String email, String nickname) {
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private AuthProvider provider;
+
+    @Column(nullable = false, length = 100)
+    private String providerId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private Role role;
+
+    public User(String email, String nickname, AuthProvider provider, String providerId, Role role) {
         this.email = email;
         this.nickname = nickname;
+        this.provider = provider;
+        this.providerId = providerId;
+        this.role = role;
+    }
+
+    public static User createLocalUser(String email, String nickname) {
+        return new User(email, nickname, AuthProvider.LOCAL, email, Role.USER);
+    }
+    
+    public static User createGithubUser(String email, String nickname, String githubId) {
+        return new User(email, nickname, AuthProvider.GITHUB, githubId, Role.USER);
     }
 
     public void updateNickname(String nickname) {
