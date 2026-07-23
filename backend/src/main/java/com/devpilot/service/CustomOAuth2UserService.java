@@ -18,24 +18,24 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
 
-    @Override
-    public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
-        OAuth2User oauth2User = super.loadUser(userRequest);
+    // @Override
+    // public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+    //     OAuth2User oauth2User = super.loadUser(userRequest);
 
-        Map<String, Object> attributes = oauth2User.getAttributes();
-        String githubId = String.valueOf(attributes.get("id"));
-        String nickname = (String) attributes.getOrDefault("login", "github-user");
-        String email = (String) attributes.get("email");
+    //     Map<String, Object> attributes = oauth2User.getAttributes();
+    //     String githubId = String.valueOf(attributes.get("id"));
+    //     String nickname = (String) attributes.getOrDefault("login", "github-user");
+    //     String email = (String) attributes.get("email");
 
-        if (email == null || email.isBlank()) {
-            email = nickname + "@github.local";
-        }
+    //     if (email == null || email.isBlank()) {
+    //         email = nickname + "@github.local";
+    //     }
 
-        User user = userRepository.findByProviderAndProviderId(AuthProvider.GITHUB, githubId)
-                .orElseGet(() -> userRepository.save(
-                        User.createGithubUser(email, nickname, githubId)
-                ));
+    //     User user = userRepository.findByProviderAndProviderId(AuthProvider.GITHUB, githubId)
+    //             .orElseGet(() -> userRepository.save(
+    //                     User.createGithubUser(email, nickname, githubId)
+    //             ));
 
-        return oauth2User;
-    }
+    //     return oauth2User;
+    // }
 }
