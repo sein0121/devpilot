@@ -50,3 +50,6 @@ coverage/
 
 # Docker
 docker/data/
+
+# Docs (local handoff / notes)
+docs/

@@ -11,13 +11,17 @@ public class UserResponse {
     private final Long id;
     private final String email;
     private final String nickname;
+    private final String provider;
+    private final String role;
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
     
-    private UserResponse(Long id, String email, String nickname, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    private UserResponse(Long id, String email, String nickname, String provider, String role, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.email = email;
         this.nickname = nickname;
+        this.provider = provider;
+        this.role = role;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -27,6 +31,8 @@ public class UserResponse {
             user.getId(), 
             user.getEmail(), 
             user.getNickname(), 
+            user.getProvider().name(),
+            user.getRole().name(),
             user.getCreatedAt(), 
             user.getUpdatedAt()
         );

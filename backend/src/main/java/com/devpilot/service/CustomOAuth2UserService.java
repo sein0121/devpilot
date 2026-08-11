@@ -2,6 +2,7 @@ package com.devpilot.service;
 
 import com.devpilot.domain.AuthProvider;
 import com.devpilot.domain.User;
+import com.devpilot.global.security.DevPilotOAuth2User;
 import com.devpilot.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -32,10 +33,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 : emailFromGithub;
 
         User user = userRepository.findByProviderAndProviderId(AuthProvider.GITHUB, githubId)
-                .orElseGet(() -> userRepository.save(
-                        User.createGithubUser(email, nickname, githubId)
-                ));
-
-        return oauth2User;
+        .orElseGet(() -> userRepository.save(
+                User.createGithubUser(email, nickname, githubId)
+        ));
+        
+        return new DevPilotOAuth2User(user, attributes);
     }
 }

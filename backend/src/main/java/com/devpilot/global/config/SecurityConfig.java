@@ -29,7 +29,9 @@ public class SecurityConfig {
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(customOAuth2UserService)
                         )
+                        .defaultSuccessUrl("/api/auth/me", true)
                 );
+                
 
         return http.build();
     }
