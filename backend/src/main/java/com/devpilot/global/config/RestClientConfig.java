@@ -19,4 +19,13 @@ public class RestClientConfig {
                 .defaultHeader("Accept", "application/vnd.github+json")
                 .build();
     }
+
+    @Bean
+    public RestClient githubGraphQlRestClient() {
+        return RestClient.builder()
+                .baseUrl("https://api.github.com/graphql")
+                .defaultHeader("Authorization", "Bearer " + githubProperties.token())
+                .defaultHeader("Content-Type", "application/json")
+                .build();
+    }
 }
