@@ -4,6 +4,7 @@ import { api, ApiError } from '../api/client';
 import type { UserResponse, GithubAccountResponse } from '../api/types';
 import { ContributionGraph } from '../components/ContributionGraph';
 import { useNavigate } from 'react-router-dom';
+import { SkillSection } from '../components/SkillSection';
 
 export function Dashboard() {
   const queryClient = useQueryClient();
@@ -154,6 +155,7 @@ export function Dashboard() {
           </>
         )}
       </div>
+      <SkillSection />
     </div>
   );
 }

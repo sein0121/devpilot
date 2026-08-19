@@ -16,17 +16,34 @@ export interface GithubRepositoryItem {
     isFork: boolean;
   }
   
-  export interface GithubContributionItem {
-    date: string;
-    count: number;
-  }
+export interface GithubContributionItem {
+  date: string;
+  count: number;
+}
   
-  export interface GithubAccountResponse {
-    githubUsername: string;
-    publicRepoCount: number;
-    followerCount: number;
-    followingCount: number;
-    lastSyncedAt: string;
-    repositories: GithubRepositoryItem[];
-    contributions: GithubContributionItem[];
-  }
+export interface GithubAccountResponse {
+  githubUsername: string;
+  publicRepoCount: number;
+  followerCount: number;
+  followingCount: number;
+  lastSyncedAt: string;
+  repositories: GithubRepositoryItem[];
+  contributions: GithubContributionItem[];
+}
+
+export type SkillStatus = 'LEARNING' | 'PROFICIENT';
+
+export interface SkillCategoryItem {
+  id: number;
+  name: string;
+  parentId: number | null;
+}
+  
+export interface SkillItem {
+  id: number;
+  name: string;
+  categoryName: string | null;
+  status: SkillStatus;
+  proficiency: number;
+  displayOrder: number;
+}
