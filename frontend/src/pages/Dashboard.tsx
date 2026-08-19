@@ -15,6 +15,7 @@ export function Dashboard() {
   const { data: user, isLoading, error } = useQuery({
     queryKey: ['me'],
     queryFn: () => api.get<UserResponse>('/api/users/me'),
+    retry: false,
   });
 
   const {
@@ -49,7 +50,9 @@ export function Dashboard() {
             className="btn btn-logout"
             onClick={() =>
               api.post('/api/auth/logout').then(() => {
-                queryClient.invalidateQueries({ queryKey: ['session'] });
+                queryClient.removeQueries({ queryKey: ['session'] });
+                queryClient.removeQueries({ queryKey: ['me'] });
+                queryClient.removeQueries({ queryKey: ['github'] });
                 navigate('/', { replace: true });
               })
             }
