@@ -1,19 +1,24 @@
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { api } from '../api/client';
-import type { UserResponse } from '../api/types'; 
 
-export function OAuthCallback({ onSuccess }: { onSuccess: (user: UserResponse) => void }) {
+export function OAuthCallback() {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
   useEffect(() => {
-    api.get<UserResponse>('/api/auth/me')
-      .then((user) => {
-        window.history.replaceState(null, '', '/'); // 주소창 정리
-        onSuccess(user);
+    api.get('/api/auth/me')
+      .then(() => {
+        queryClient.invalidateQueries({ queryKey: ['session'] });
+        navigate('/dashboard', { replace: true });
       })
       .catch((err) => {
         console.error('로그인 확인 실패', err);
         alert('로그인에 실패했습니다.');
+        navigate('/', { replace: true });
       });
-  }, [onSuccess]);
+  }, [navigate, queryClient]);
 
   return <p style={{ textAlign: 'center', marginTop: '4rem' }}>로그인 처리 중...</p>;
 }

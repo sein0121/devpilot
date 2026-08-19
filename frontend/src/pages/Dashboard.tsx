@@ -3,11 +3,14 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, ApiError } from '../api/client';
 import type { UserResponse, GithubAccountResponse } from '../api/types';
 import { ContributionGraph } from '../components/ContributionGraph';
+import { useNavigate } from 'react-router-dom';
 
 export function Dashboard() {
   const queryClient = useQueryClient();
   const [reposOpen, setReposOpen] = useState(false);
   const [commitsOpen, setCommitsOpen] = useState(false);
+
+  const navigate = useNavigate();
 
   const { data: user, isLoading, error } = useQuery({
     queryKey: ['me'],
@@ -44,7 +47,12 @@ export function Dashboard() {
           <p className="card-title">계정 정보</p>
           <button
             className="btn btn-logout"
-            onClick={() => api.post('/api/auth/logout').then(() => { window.location.href = '/'; })}
+            onClick={() =>
+              api.post('/api/auth/logout').then(() => {
+                queryClient.invalidateQueries({ queryKey: ['session'] });
+                navigate('/', { replace: true });
+              })
+            }
           >
             로그아웃
           </button>

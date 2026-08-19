@@ -1,7 +1,13 @@
-// src/pages/Login.tsx
+import { Navigate } from 'react-router-dom';
 import { loginWithGithub } from '../api/client';
+import { useSession } from '../hooks/useSession';
 
 export function Login() {
+  const { data, isLoading } = useSession();
+
+  if (isLoading) return <div className="page">확인 중...</div>;
+  if (data) return <Navigate to="/dashboard" replace />;
+
   return (
     <div className="login-wrap">
       <div className="login-title">DevPilot</div>
