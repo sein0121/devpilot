@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, ApiError } from '../api/client';
 import type { UserResponse, GithubAccountResponse } from '../api/types';
+import { ContributionGraph } from '../components/ContributionGraph';
 
 export function Dashboard() {
   const queryClient = useQueryClient();
@@ -133,6 +134,8 @@ export function Dashboard() {
                 </ul>
               </div>
             )}
+
+            <ContributionGraph contributions={github.contributions} />
 
             <div className="sync-meta">
               @{github.githubUsername} · 마지막 동기화 {new Date(github.lastSyncedAt).toLocaleString()}
