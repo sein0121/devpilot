@@ -7,6 +7,7 @@ public record GithubUserApiResponse(
         String login,
         Integer public_repos,
         Integer followers,
-        Integer following
+        Integer following,
+        String avatar_url 
 ) {
 }

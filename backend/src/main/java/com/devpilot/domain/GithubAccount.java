@@ -23,6 +23,9 @@ public class GithubAccount {
     @Column(nullable = false)
     private String githubUsername;
 
+    @Column(length = 500)
+    private String avatarUrl; // 깃허브 프로필 이미지 URL
+
     private Integer publicRepoCount;
     private Integer followerCount;
     private Integer followingCount;
@@ -36,10 +39,11 @@ public class GithubAccount {
         return account;
     }
 
-    public void updateProfile(Integer publicRepoCount, Integer followerCount, Integer followingCount) {
+    public void updateProfile(Integer publicRepoCount, Integer followerCount, Integer followingCount, String avatarUrl) {
         this.publicRepoCount = publicRepoCount;
         this.followerCount = followerCount;
         this.followingCount = followingCount;
+        this.avatarUrl = avatarUrl;
         this.lastSyncedAt = LocalDateTime.now();
     }
 }

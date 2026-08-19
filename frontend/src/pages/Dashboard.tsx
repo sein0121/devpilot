@@ -5,6 +5,7 @@ import type { UserResponse, GithubAccountResponse } from '../api/types';
 import { ContributionGraph } from '../components/ContributionGraph';
 import { useNavigate } from 'react-router-dom';
 import { SkillSection } from '../components/SkillSection';
+import { ProfileMenu } from '../components/ProfileMenu';
 
 export function Dashboard() {
   const queryClient = useQueryClient();
@@ -42,30 +43,9 @@ export function Dashboard() {
 
   return (
     <div className="page">
+      <div className="greeting-row">
       <div className="greeting">안녕하세요, {user?.nickname}님 👋</div>
-
-      <div className="card">
-        <div className="card-header">
-          <p className="card-title">계정 정보</p>
-          <button
-            className="btn btn-logout"
-            onClick={() =>
-              api.post('/api/auth/logout').then(() => {
-                queryClient.removeQueries({ queryKey: ['session'] });
-                queryClient.removeQueries({ queryKey: ['me'] });
-                queryClient.removeQueries({ queryKey: ['github'] });
-                navigate('/', { replace: true });
-              })
-            }
-          >
-            로그아웃
-          </button>
-        </div>
-        <ul className="info-list">
-          <li>이메일 <strong>{user?.email}</strong></li>
-          <li>Provider <strong>{user?.provider}</strong></li>
-          <li>Role <strong>{user?.role}</strong></li>
-        </ul>
+        {user && <ProfileMenu user={user} avatarUrl={github?.avatarUrl} />}
       </div>
 
       <div className="card">

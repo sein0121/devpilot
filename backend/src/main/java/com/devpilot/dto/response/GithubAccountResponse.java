@@ -9,6 +9,7 @@ import java.util.List;
 
 public record GithubAccountResponse(
         String githubUsername,
+        String avatarUrl,
         Integer publicRepoCount,
         Integer followerCount,
         Integer followingCount,
@@ -23,6 +24,7 @@ public record GithubAccountResponse(
     ) {
         return new GithubAccountResponse(
                 account.getGithubUsername(),
+                account.getAvatarUrl(),
                 account.getPublicRepoCount(),
                 account.getFollowerCount(),
                 account.getFollowingCount(),

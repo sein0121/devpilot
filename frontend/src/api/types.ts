@@ -23,6 +23,7 @@ export interface GithubContributionItem {
   
 export interface GithubAccountResponse {
   githubUsername: string;
+  avatarUrl: string | null;
   publicRepoCount: number;
   followerCount: number;
   followingCount: number;

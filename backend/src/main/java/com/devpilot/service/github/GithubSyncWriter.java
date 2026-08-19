@@ -38,7 +38,7 @@ public class GithubSyncWriter {
         GithubAccount account = githubAccountRepository.findByUser(user)
                 .orElseGet(() -> githubAccountRepository.save(GithubAccount.create(user, username)));
 
-        account.updateProfile(profile.public_repos(), profile.followers(), profile.following());
+        account.updateProfile(profile.public_repos(), profile.followers(), profile.following(), profile.avatar_url());
 
         syncRepositories(account, repos);
         syncContributions(account, contributions);
