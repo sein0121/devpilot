@@ -26,6 +26,9 @@ public class StudyLog {
     @Column(name = "log_date", nullable = false)
     private LocalDate date;
 
+    @Column(nullable = false)
+    private String title;
+
     @Column(columnDefinition = "TEXT")
     private String content;
 
@@ -37,15 +40,17 @@ public class StudyLog {
     )
     private Set<Skill> skills = new HashSet<>();
 
-    public static StudyLog create(User user, LocalDate date, String content) {
+    public static StudyLog create(User user, LocalDate date, String title, String content) {
         StudyLog log = new StudyLog();
         log.user = user;
         log.date = date;
+        log.title = title;
         log.content = content;
         return log;
     }
 
-    public void updateContent(String content) {
+    public void updateContent(String title, String content) {
+        this.title = title;
         this.content = content;
     }
 

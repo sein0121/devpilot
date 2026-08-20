@@ -8,6 +8,7 @@ import java.util.List;
 public record StudyLogResponse(
         Long id,
         LocalDate date,
+        String title,
         String content,
         List<String> skillNames
 ) {
@@ -15,6 +16,7 @@ public record StudyLogResponse(
         return new StudyLogResponse(
                 log.getId(),
                 log.getDate(),
+                log.getTitle(),
                 log.getContent(),
                 log.getSkills().stream().map(s -> s.getName()).toList()
         );

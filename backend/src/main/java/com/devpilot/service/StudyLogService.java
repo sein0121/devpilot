@@ -49,9 +49,9 @@ public class StudyLogService {
         Set<Skill> skills = resolveSkills(user, request.skillIds());
 
         StudyLog log = studyLogRepository.findByUserAndDate(user, date)
-                .orElseGet(() -> studyLogRepository.save(StudyLog.create(user, date, request.content())));
+                .orElseGet(() -> studyLogRepository.save(StudyLog.create(user, date, request.title(), request.content())));
 
-        log.updateContent(request.content());
+        log.updateContent(request.title(), request.content());
         log.updateSkills(skills);
 
         return StudyLogResponse.from(log);
