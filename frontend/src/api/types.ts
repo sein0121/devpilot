@@ -48,3 +48,11 @@ export interface SkillItem {
   proficiency: number;
   displayOrder: number;
 }
+
+export interface StudyLogItem {
+  id: number;
+  date: string; // "2026-08-20"
+  title: string;
+  content: string;
+  skillNames: string[];
+}
