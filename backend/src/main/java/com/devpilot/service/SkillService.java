@@ -15,6 +15,7 @@ import com.devpilot.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.devpilot.repository.RoadmapStepRepository;
 
 import java.util.List;
 import java.util.Map;
@@ -27,6 +28,7 @@ public class SkillService {
     private final UserRepository userRepository;
     private final SkillRepository skillRepository;
     private final SkillCategoryRepository skillCategoryRepository;
+    private final RoadmapStepRepository roadmapStepRepository;
 
     @Transactional(readOnly = true)
     public List<SkillResponse> getMySkills(Long userId) {
@@ -68,6 +70,9 @@ public class SkillService {
         User user = getUser(userId);
         Skill skill = skillRepository.findByIdAndUser(skillId, user)
                 .orElseThrow(() -> new SkillNotFoundException(skillId));
+
+        roadmapStepRepository.findBySkill(skill)
+                .forEach(step -> step.detachSkill()); // 연결된 Step들의 skill 참조만 끊기
 
         skillRepository.delete(skill);
     }
