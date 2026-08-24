@@ -56,3 +56,41 @@ export interface StudyLogItem {
   content: string;
   skillNames: string[];
 }
+
+export type RoadmapStepStatus = 'TODO' | 'IN_PROGRESS' | 'DONE';
+
+export interface RoadmapSummary {
+  id: number;
+  title: string;
+  targetDate: string | null;
+  totalSteps: number;
+  doneSteps: number;
+  progress: number;
+}
+
+export interface RoadmapStepItem {
+  id: number;
+  title: string;
+  description: string | null;
+  status: RoadmapStepStatus;
+  targetDate: string | null;
+  link: string | null;
+  skillName: string | null;
+  displayOrder: number;
+}
+
+export interface RoadmapLinkItem {
+  id: number;
+  url: string;
+  label: string | null;
+}
+
+export interface RoadmapDetail {
+  id: number;
+  title: string;
+  description: string | null;
+  targetDate: string | null;
+  progress: number;
+  steps: RoadmapStepItem[];
+  links: RoadmapLinkItem[];
+}

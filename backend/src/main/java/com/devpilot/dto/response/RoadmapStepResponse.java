@@ -11,6 +11,7 @@ public record RoadmapStepResponse(
         String description,
         RoadmapStepStatus status,
         LocalDate targetDate,
+        String link,
         String skillName,
         Integer displayOrder
 ) {
@@ -20,7 +21,8 @@ public record RoadmapStepResponse(
                 step.getTitle(),
                 step.getDescription(),
                 step.getStatus(),
-                step.getTargetDate(),
+                step.getTargetDate(),   
+                step.getLink(),
                 step.getSkill() != null ? step.getSkill().getName() : null,
                 step.getDisplayOrder()
         );

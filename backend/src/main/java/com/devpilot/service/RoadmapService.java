@@ -1,12 +1,18 @@
 package com.devpilot.service;
 
 import com.devpilot.domain.Roadmap;
+import com.devpilot.domain.RoadmapLink;
+import com.devpilot.domain.RoadmapStep;
 import com.devpilot.domain.User;
+import com.devpilot.dto.request.CreateRoadmapLinkRequest;
 import com.devpilot.dto.request.UpsertRoadmapRequest;
 import com.devpilot.dto.response.RoadmapDetailResponse;
+import com.devpilot.dto.response.RoadmapLinkResponse;
 import com.devpilot.dto.response.RoadmapSummaryResponse;
+import com.devpilot.global.exception.RoadmapLinkNotFoundException;
 import com.devpilot.global.exception.RoadmapNotFoundException;
 import com.devpilot.global.exception.UserNotFoundException;
+import com.devpilot.repository.RoadmapLinkRepository;
 import com.devpilot.repository.RoadmapRepository;
 import com.devpilot.repository.RoadmapStepRepository;
 import com.devpilot.repository.UserRepository;
@@ -23,6 +29,7 @@ public class RoadmapService {
     private final UserRepository userRepository;
     private final RoadmapRepository roadmapRepository;
     private final RoadmapStepRepository roadmapStepRepository;
+    private final RoadmapLinkRepository roadmapLinkRepository;
 
     @Transactional(readOnly = true)
     public List<RoadmapSummaryResponse> getMyRoadmaps(Long userId) {
@@ -38,9 +45,9 @@ public class RoadmapService {
     public RoadmapDetailResponse getRoadmapDetail(Long userId, Long roadmapId) {
         User user = getUser(userId);
         Roadmap roadmap = getOwnedRoadmap(user, roadmapId);
-        List<com.devpilot.domain.RoadmapStep> steps =
-                roadmapStepRepository.findByRoadmapOrderByDisplayOrderAsc(roadmap);
-        return RoadmapDetailResponse.of(roadmap, steps);
+        List<RoadmapStep> steps = roadmapStepRepository.findByRoadmapOrderByDisplayOrderAsc(roadmap);
+        List<RoadmapLink> links = roadmapLinkRepository.findByRoadmapOrderByIdAsc(roadmap); // 추가
+        return RoadmapDetailResponse.of(roadmap, steps, links); // links 인자 추가
     }
 
     @Transactional
@@ -67,8 +74,29 @@ public class RoadmapService {
     public void deleteRoadmap(Long userId, Long roadmapId) {
         User user = getUser(userId);
         Roadmap roadmap = getOwnedRoadmap(user, roadmapId);
-        roadmapStepRepository.deleteByRoadmap(roadmap); // 자식(Step)부터 정리
+        roadmapStepRepository.deleteByRoadmap(roadmap);
+        roadmapLinkRepository.deleteByRoadmap(roadmap); // 추가 — 링크도 같이 정리
         roadmapRepository.delete(roadmap);
+    }
+
+    @Transactional
+    public RoadmapLinkResponse addLink(Long userId, Long roadmapId, CreateRoadmapLinkRequest request) {
+        User user = getUser(userId);
+        Roadmap roadmap = getOwnedRoadmap(user, roadmapId);
+
+        RoadmapLink link = roadmapLinkRepository.save(
+                RoadmapLink.create(roadmap, request.url(), request.label())
+        );
+        return RoadmapLinkResponse.from(link);
+    }
+
+    @Transactional
+    public void deleteLink(Long userId, Long roadmapId, Long linkId) {
+        User user = getUser(userId);
+        Roadmap roadmap = getOwnedRoadmap(user, roadmapId);
+        RoadmapLink link = roadmapLinkRepository.findByIdAndRoadmap(linkId, roadmap)
+                .orElseThrow(() -> new RoadmapLinkNotFoundException(linkId));
+        roadmapLinkRepository.delete(link);
     }
 
     private User getUser(Long userId) {

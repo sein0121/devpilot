@@ -44,8 +44,8 @@ public class RoadmapStepService {
         int nextOrder = roadmapStepRepository.findByRoadmapOrderByDisplayOrderAsc(roadmap).size();
 
         RoadmapStep step = roadmapStepRepository.save(
-                RoadmapStep.create(roadmap, skill, request.title(), request.description(),
-                        request.targetDate(), nextOrder)
+            RoadmapStep.create(roadmap, skill, request.title(), request.description(),
+                    request.targetDate(), request.link(), nextOrder)
         );
 
         return RoadmapStepResponse.from(step);
@@ -65,7 +65,7 @@ public class RoadmapStepService {
                     .orElseThrow(() -> new SkillNotFoundException(request.skillId()));
         }
 
-        step.update(request.title(), request.description(), request.targetDate(), skill);
+        step.update(request.title(), request.description(), request.targetDate(), request.link(), skill);
         return RoadmapStepResponse.from(step);
     }
 

@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { SkillSection } from '../components/SkillSection';
 import { ProfileMenu } from '../components/ProfileMenu';
 import { StudyLogSection } from '../components/StudyLogSection';
+import { RoadmapSection } from '../components/RoadmapSection';
 
 export function Dashboard() {
   const queryClient = useQueryClient();
@@ -138,6 +139,7 @@ export function Dashboard() {
       </div>
       <SkillSection />
       <StudyLogSection />
+      <RoadmapSection />
     </div>
   );
 }

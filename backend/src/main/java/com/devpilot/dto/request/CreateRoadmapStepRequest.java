@@ -9,6 +9,7 @@ public record CreateRoadmapStepRequest(
         @NotNull Long skillId, // 생성 시엔 필수
         @NotBlank String title,
         String description,
-        LocalDate targetDate
+        LocalDate targetDate,
+        String link
 ) {
 }

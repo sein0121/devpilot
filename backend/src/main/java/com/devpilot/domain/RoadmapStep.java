@@ -39,9 +39,12 @@ public class RoadmapStep {
     @Column(nullable = false)
     private Integer displayOrder;
 
+    @Column(length = 500)
+    private String link; // 참고 링크 (강의, 문서 등), nullable
+
     public static RoadmapStep create(
             Roadmap roadmap, Skill skill, String title, String description,
-            LocalDate targetDate, Integer displayOrder
+            LocalDate targetDate, String link, Integer displayOrder
     ) {
         RoadmapStep step = new RoadmapStep();
         step.roadmap = roadmap;
@@ -50,14 +53,16 @@ public class RoadmapStep {
         step.description = description;
         step.status = RoadmapStepStatus.TODO;
         step.targetDate = targetDate;
+        step.link = link;
         step.displayOrder = displayOrder;
         return step;
     }
 
-    public void update(String title, String description, LocalDate targetDate, Skill skill) {
+    public void update(String title, String description, LocalDate targetDate, String link, Skill skill) {
         this.title = title;
         this.description = description;
         this.targetDate = targetDate;
+        this.link = link;
         this.skill = skill;
     }
 
