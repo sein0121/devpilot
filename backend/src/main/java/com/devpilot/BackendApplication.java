@@ -5,8 +5,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 import com.devpilot.global.config.GithubProperties;
+import com.devpilot.global.config.GeminiProperties;
 
-@EnableConfigurationProperties(GithubProperties.class)
+@EnableConfigurationProperties({GithubProperties.class, GeminiProperties.class})
 @SpringBootApplication
 public class BackendApplication {
 

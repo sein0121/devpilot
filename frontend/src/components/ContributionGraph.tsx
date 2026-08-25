@@ -26,11 +26,11 @@ function buildWeeks(contributions: GithubContributionItem[]) {
 
 function plantOf(count: number) {
   if (count === 0) return null;
-  if (count <= 2) return '🌱';
-  if (count <= 5) return '🌳';
-  if (count <= 8) return '🌴';
-  if (count <= 10) return '🌻';
-  return '🌷';
+  if (count <= 2) return '🍩';
+  if (count <= 5) return '🍙';
+  if (count <= 8) return '🍔';
+  if (count <= 10) return '🍖';
+  return '🍱';
 }
 
 function formatDate(iso: string) {
@@ -75,11 +75,11 @@ export function ContributionGraph({ contributions }: { contributions: GithubCont
       )}
 
       <div className="contrib-legend">
-        <span>🌱 1-2</span>
-        <span>🌳 3-5</span>
-        <span>🌴 6-8</span>
-        <span>🌻 9-10</span>
-        <span>🌷 11+</span>
+        <span>🍩 1-2</span>
+        <span>🍙 3-5</span>
+        <span>🍔 6-8</span>
+        <span>🍖 9-10</span>
+        <span>🍱 11+</span>
       </div>
     </div>
   );
