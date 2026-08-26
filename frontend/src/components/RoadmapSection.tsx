@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api/client';
 import type {
+  AiRoadmapDraftResponse,
+  AiRoadmapStepDraft,
   RoadmapDetail,
   RoadmapLinkItem,
   RoadmapStepItem,
@@ -20,6 +22,7 @@ export function RoadmapSection() {
   const queryClient = useQueryClient();
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showAiFlow, setShowAiFlow] = useState(false);
 
   const { data: roadmaps } = useQuery({
     queryKey: ['roadmaps'],
@@ -44,14 +47,21 @@ export function RoadmapSection() {
     );
   }
 
+  const anyFormOpen = showCreateForm || showAiFlow;
+
   return (
     <div className="card">
       <div className="card-header">
         <p className="card-title">Roadmap</p>
-        {!showCreateForm && (
-          <button className="btn btn-primary" onClick={() => setShowCreateForm(true)}>
-            + 새 로드맵
-          </button>
+        {!anyFormOpen && (
+          <div className="roadmap-header-actions">
+            <button className="btn" onClick={() => setShowAiFlow(true)}>
+              ✨ AI로 만들기
+            </button>
+            <button className="btn btn-primary" onClick={() => setShowCreateForm(true)}>
+              + 새 로드맵
+            </button>
+          </div>
         )}
       </div>
 
@@ -66,11 +76,22 @@ export function RoadmapSection() {
         />
       )}
 
-      {!showCreateForm && (!roadmaps || roadmaps.length === 0) && (
+      {showAiFlow && (
+        <AiDraftFlow
+          onCancel={() => setShowAiFlow(false)}
+          onCreated={(id) => {
+            setShowAiFlow(false);
+            invalidateList();
+            setSelectedId(id);
+          }}
+        />
+      )}
+
+      {!anyFormOpen && (!roadmaps || roadmaps.length === 0) && (
         <div className="empty-state">아직 만든 로드맵이 없어요.</div>
       )}
 
-      {!showCreateForm && roadmaps && roadmaps.length > 0 && (
+      {!anyFormOpen && roadmaps && roadmaps.length > 0 && (
         <ul className="roadmap-list">
           {roadmaps.map((r) => (
             <li key={r.id} className="roadmap-card" onClick={() => setSelectedId(r.id)}>
@@ -88,6 +109,217 @@ export function RoadmapSection() {
           ))}
         </ul>
       )}
+    </div>
+  );
+}
+
+interface EditableDraftStep extends AiRoadmapStepDraft {
+  skillId: string; // select value로 쓰기 위해 string, '' = 미선택
+}
+
+function AiDraftFlow({
+  onCancel,
+  onCreated,
+}: {
+  onCancel: () => void;
+  onCreated: (id: number) => void;
+}) {
+  const [phase, setPhase] = useState<'input' | 'review'>('input');
+  const [goal, setGoal] = useState('');
+  const [targetDate, setTargetDate] = useState('');
+  const [roadmapTitle, setRoadmapTitle] = useState('');
+  const [draftSteps, setDraftSteps] = useState<EditableDraftStep[]>([]);
+
+  const { data: skills } = useQuery({
+    queryKey: ['skills'],
+    queryFn: () => api.get<SkillItem[]>('/api/skills'),
+  });
+
+  const generateMutation = useMutation({
+    mutationFn: () =>
+      api.post<AiRoadmapDraftResponse>('/api/ai/roadmap-drafts', {
+        goal,
+        targetDate: targetDate || null,
+      }),
+    onSuccess: (res) => {
+      setDraftSteps(
+        res.steps.map((s) => ({
+          ...s,
+          skillId: s.matchedSkillId ? String(s.matchedSkillId) : '',
+        }))
+      );
+      setRoadmapTitle(goal.length > 40 ? goal.slice(0, 40) + '...' : goal);
+      setPhase('review');
+    },
+  });
+
+  const confirmMutation = useMutation({
+    mutationFn: async () => {
+      const roadmap = await api.post<RoadmapSummary>('/api/roadmaps', {
+        title: roadmapTitle,
+        description: goal,
+        targetDate: targetDate || null,
+      });
+
+      for (const step of draftSteps) {
+        await api.post(`/api/roadmaps/${roadmap.id}/steps`, {
+          skillId: Number(step.skillId),
+          title: step.title,
+          description: step.description,
+          targetDate: null,
+          link: null,
+        });
+      }
+
+      return roadmap;
+    },
+    onSuccess: (roadmap) => onCreated(roadmap.id),
+  });
+
+  function updateStep(index: number, patch: Partial<EditableDraftStep>) {
+    setDraftSteps((prev) => prev.map((s, i) => (i === index ? { ...s, ...patch } : s)));
+  }
+
+  function removeStep(index: number) {
+    setDraftSteps((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  const allStepsHaveSkill = draftSteps.length > 0 && draftSteps.every((s) => s.skillId);
+  const canConfirm = roadmapTitle.trim() && allStepsHaveSkill;
+
+  if (phase === 'input') {
+    return (
+      <div className="studylog-form">
+        <div className="card-header" style={{ marginBottom: '0.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <button className="btn-icon" onClick={onCancel} aria-label="취소">
+              ←
+            </button>
+            <p className="card-title" style={{ margin: 0 }}>AI로 로드맵 만들기</p>
+          </div>
+        </div>
+
+        <label className="field-label">목표</label>
+        <textarea
+          className="studylog-textarea"
+          placeholder="예: 백엔드 주니어에서 시니어로 성장하고 싶어요"
+          rows={3}
+          value={goal}
+          onChange={(e) => setGoal(e.target.value)}
+        />
+
+        <label className="field-label">목표 마감일 (선택)</label>
+        <input
+          type="date"
+          className="studylog-date-input"
+          value={targetDate}
+          onChange={(e) => setTargetDate(e.target.value)}
+        />
+
+        {generateMutation.isError && (
+          <div className="ai-error-notice">{(generateMutation.error as Error).message}</div>
+        )}
+
+        <div className="studylog-today-actions">
+          <button
+            className="btn btn-primary"
+            disabled={!goal.trim() || generateMutation.isPending}
+            onClick={() => generateMutation.mutate()}
+          >
+            {generateMutation.isPending ? 'AI가 생각하는 중... (최대 30초)' : '초안 생성'}
+          </button>
+          <button className="btn" onClick={onCancel}>
+            취소
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="studylog-form">
+      <div className="card-header" style={{ marginBottom: '0.75rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <button className="btn-icon" onClick={onCancel} aria-label="취소">
+            ←
+          </button>
+          <p className="card-title" style={{ margin: 0 }}>AI 초안 검토</p>
+        </div>
+      </div>
+
+      <div className="ai-review-notice">AI가 만든 초안이에요. 검토하고 자유롭게 수정해주세요.</div>
+
+      <label className="field-label">로드맵 제목</label>
+      <input
+        className="studylog-title-input"
+        value={roadmapTitle}
+        onChange={(e) => setRoadmapTitle(e.target.value)}
+      />
+
+      <label className="field-label">단계 ({draftSteps.length}개)</label>
+      <ul className="ai-draft-list">
+        {draftSteps.map((step, index) => (
+          <li key={index} className="ai-draft-item">
+            <div className="ai-draft-item-header">
+              <input
+                className="ai-draft-title-input"
+                value={step.title}
+                onChange={(e) => updateStep(index, { title: e.target.value })}
+              />
+              <button
+                className="btn-icon danger"
+                onClick={() => removeStep(index)}
+                aria-label="이 단계 삭제"
+              >
+                ✕
+              </button>
+            </div>
+            <textarea
+              className="studylog-textarea"
+              rows={2}
+              value={step.description ?? ''}
+              onChange={(e) => updateStep(index, { description: e.target.value })}
+            />
+            <select
+              className={`skill-select ${!step.skillId ? 'unselected' : ''}`}
+              value={step.skillId}
+              onChange={(e) => updateStep(index, { skillId: e.target.value })}
+            >
+              <option value="">
+                {step.matchedSkillId ? '기술 선택' : `기술 선택 (AI 추천: ${step.suggestedSkillName})`}
+              </option>
+              {skills?.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+            {!step.skillId && (
+              <div className="ai-draft-skill-hint">
+                “{step.suggestedSkillName}”이(가) 아직 Skill 목록에 없어요. 비슷한 기술을 선택하거나
+                Skills 페이지에서 먼저 추가해주세요.
+              </div>
+            )}
+          </li>
+        ))}
+      </ul>
+
+      {draftSteps.length === 0 && (
+        <div className="empty-state">모든 단계를 삭제했어요. 다시 생성하거나 취소해주세요.</div>
+      )}
+
+      <div className="studylog-today-actions">
+        <button
+          className="btn btn-primary"
+          disabled={!canConfirm || confirmMutation.isPending}
+          onClick={() => confirmMutation.mutate()}
+        >
+          {confirmMutation.isPending ? '만드는 중...' : '로드맵 만들기'}
+        </button>
+        <button className="btn" onClick={onCancel}>
+          취소
+        </button>
+      </div>
     </div>
   );
 }

@@ -94,3 +94,14 @@ export interface RoadmapDetail {
   steps: RoadmapStepItem[];
   links: RoadmapLinkItem[];
 }
+
+export interface AiRoadmapStepDraft {
+  title: string;
+  description: string | null;
+  suggestedSkillName: string;
+  matchedSkillId: number | null;
+}
+
+export interface AiRoadmapDraftResponse {
+  steps: AiRoadmapStepDraft[];
+}
