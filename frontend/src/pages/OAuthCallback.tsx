@@ -20,5 +20,5 @@ export function OAuthCallback() {
       });
   }, [navigate, queryClient]);
 
-  return <p style={{ textAlign: 'center', marginTop: '4rem' }}>로그인 처리 중...</p>;
+  return <p className="page empty-state" style={{ marginTop: '4rem' }}>로그인 처리 중...</p>;
 }

@@ -24,7 +24,10 @@ export function AppLayout() {
         <div className="page app-content">
           <div className="greeting-row">
             <div className="greeting greeting-clickable" onClick={() => navigate('/dashboard')}>
-              {user ? `안녕하세요, ${user.nickname}님 👋` : ''}
+              <span className="brand-mark">DP</span>
+              <span className="greeting-text">
+                {user ? `안녕하세요, ${user.nickname}님` : 'DevPilot'}
+              </span>
             </div>
             {user && <ProfileMenu user={user} avatarUrl={github?.avatarUrl} />}
           </div>

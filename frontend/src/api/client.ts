@@ -1,3 +1,4 @@
+// src/api/client.ts
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 if (!BASE_URL) {
@@ -15,20 +16,29 @@ export class ApiError extends Error {
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE_URL}${path}`, {
     ...options,
-    credentials: 'include', // 세션 쿠키 전송 필수
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
       ...options?.headers,
     },
   });
 
-  const body = await res.json();
-
-  if (!res.ok) {
-    throw new ApiError(res.status, body.message ?? 'Unknown error');
+  // 204 No Content 이거나 body가 비어있으면 JSON 파싱을 시도하지 않음
+  if (res.status === 204) {
+    if (!res.ok) {
+      throw new ApiError(res.status, '요청 처리에 실패했습니다.');
+    }
+    return undefined as T;
   }
 
-  return body.data as T;
+  const text = await res.text();
+  const body = text ? JSON.parse(text) : null;
+
+  if (!res.ok) {
+    throw new ApiError(res.status, body?.message ?? 'Unknown error');
+  }
+
+  return body?.data as T;
 }
 
 export const api = {

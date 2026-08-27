@@ -184,8 +184,16 @@ function AiDraftFlow({
     setDraftSteps((prev) => prev.filter((_, i) => i !== index));
   }
 
-  const allStepsHaveSkill = draftSteps.length > 0 && draftSteps.every((s) => s.skillId);
-  const canConfirm = roadmapTitle.trim() && allStepsHaveSkill;
+  function addStep() {
+    setDraftSteps((prev) => [
+      ...prev,
+      { title: '', description: '', suggestedSkillName: '', matchedSkillId: null, skillId: '' },
+    ]);
+  }
+
+  const allStepsValid =
+    draftSteps.length > 0 && draftSteps.every((s) => s.skillId && s.title.trim());
+  const canConfirm = roadmapTitle.trim() && allStepsValid;
 
   if (phase === 'input') {
     return (
@@ -256,13 +264,19 @@ function AiDraftFlow({
         onChange={(e) => setRoadmapTitle(e.target.value)}
       />
 
-      <label className="field-label">단계 ({draftSteps.length}개)</label>
+      <div className="card-header" style={{ marginBottom: '0.4rem' }}>
+        <label className="field-label" style={{ marginBottom: 0 }}>단계 ({draftSteps.length}개)</label>
+        <button className="btn" onClick={addStep}>
+          + 단계 추가
+        </button>
+      </div>
       <ul className="ai-draft-list">
         {draftSteps.map((step, index) => (
           <li key={index} className="ai-draft-item">
             <div className="ai-draft-item-header">
               <input
                 className="ai-draft-title-input"
+                placeholder="단계 제목"
                 value={step.title}
                 onChange={(e) => updateStep(index, { title: e.target.value })}
               />
@@ -277,6 +291,7 @@ function AiDraftFlow({
             <textarea
               className="studylog-textarea"
               rows={2}
+              placeholder="설명 (선택)"
               value={step.description ?? ''}
               onChange={(e) => updateStep(index, { description: e.target.value })}
             />
@@ -286,7 +301,11 @@ function AiDraftFlow({
               onChange={(e) => updateStep(index, { skillId: e.target.value })}
             >
               <option value="">
-                {step.matchedSkillId ? '기술 선택' : `기술 선택 (AI 추천: ${step.suggestedSkillName})`}
+                {step.suggestedSkillName
+                  ? step.matchedSkillId
+                    ? '기술 선택'
+                    : `기술 선택 (AI 추천: ${step.suggestedSkillName})`
+                  : '기술 선택 (필수)'}
               </option>
               {skills?.map((s) => (
                 <option key={s.id} value={s.id}>
@@ -294,7 +313,7 @@ function AiDraftFlow({
                 </option>
               ))}
             </select>
-            {!step.skillId && (
+            {!step.skillId && step.suggestedSkillName && (
               <div className="ai-draft-skill-hint">
                 “{step.suggestedSkillName}”이(가) 아직 Skill 목록에 없어요. 비슷한 기술을 선택하거나
                 Skills 페이지에서 먼저 추가해주세요.

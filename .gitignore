@@ -51,5 +51,8 @@ coverage/
 # Docker
 docker/data/
 
+# Secrets / SSH keys
+keys/
+
 # Docs (local handoff / notes)
 docs/

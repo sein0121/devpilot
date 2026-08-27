@@ -55,9 +55,10 @@ textarea {
 }
 
 .page {
-  max-width: 640px;
+  width: min(1120px, calc(100% - 2rem));
+  max-width: none;
   margin: 0 auto;
-  padding: 1.25rem 1.15rem 2rem;
+  padding: 1.25rem 0 2rem;
 }
 
 /* 로그인 */
@@ -558,6 +559,28 @@ textarea {
 .skill-actions {
   display: flex;
   gap: 0.25rem;
+}
+
+.skill-item {
+  cursor: pointer;
+}
+
+.skill-item-editing {
+  cursor: default;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.6rem;
+}
+
+.skill-edit-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.skill-edit-row .skill-input {
+  flex: 1;
+  min-width: 120px;
 }
 
 .btn-icon {
@@ -1234,7 +1257,7 @@ textarea {
   bottom: 0.85rem;
   left: 50%;
   transform: translateX(-50%);
-  width: min(calc(100% - 1.4rem), 420px);
+  width: min(calc(100% - 1.4rem), 560px);
   display: flex;
   justify-content: space-around;
   align-items: center;
