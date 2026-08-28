@@ -1,25 +1,44 @@
-spring:
-  datasource:
-    url: jdbc:mysql://mysql:3306/${MYSQL_DATABASE}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-    username: root
-    password: ${MYSQL_ROOT_PASSWORD}
-  jpa:
-    hibernate:
-      ddl-auto: update
-  mvc:
-    throw-exception-if-no-handler-found: true
-  web:
-    resources:
-      add-mappings: false
-
 app:
   frontend-url: ${FRONTEND_URL}
 
 github:
   api:
     token: ${GITHUB_PAT}
-  client-id: ${GITHUB_CLIENT_ID}
-  client-secret: ${GITHUB_CLIENT_SECRET}
+
+spring:
+  datasource:
+    url: jdbc:mysql://mysql:3306/${MYSQL_DATABASE}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
+    username: root
+    password: ${MYSQL_ROOT_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            client-id: ${GITHUB_CLIENT_ID}
+            client-secret: ${GITHUB_CLIENT_SECRET}
+            scope:
+              - read:user
+              - user:email
+
+  mvc:
+    throw-exception-if-no-handler-found: true
+  web:
+    resources:
+      add-mappings: false
+
+ai:
+  provider: gemini
 
 gemini:
   api:
