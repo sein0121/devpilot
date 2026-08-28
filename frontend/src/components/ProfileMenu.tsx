@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { api } from '../api/client';
-import type { UserResponse, GithubAccountResponse } from '../api/types';
+import type { UserResponse } from '../api/types';
 
 export function ProfileMenu({
   user,
