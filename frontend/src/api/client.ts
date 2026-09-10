@@ -1,9 +1,11 @@
 // src/api/client.ts
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+// const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-if (!BASE_URL) {
-  throw new Error('VITE_API_BASE_URL이 설정되지 않았습니다. .env 파일을 확인하세요.');
-}
+// if (!BASE_URL) {
+//   throw new Error('VITE_API_BASE_URL이 설정되지 않았습니다. .env 파일을 확인하세요.');
+// }
+
+const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 
 export class ApiError extends Error {
   status: number;
