@@ -11,9 +11,10 @@ services:
       - "127.0.0.1:3306:3306"  # 외부 노출 안 함, 서버 내부에서만 접근 가능
 
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: ghcr.io/sein0121/devpilot-backend:latest
+    # build:
+    #   context: ./backend
+    #   dockerfile: Dockerfile
     restart: always
     depends_on:
       - mysql
