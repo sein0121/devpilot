@@ -9,6 +9,13 @@ server:
   forward-headers-strategy: framework
 
 spring:
+  data:
+    redis:
+      host: redis
+      port: 6379
+  session:
+    store-type: redis
+    timeout: 30m
   datasource:
     url: jdbc:mysql://mysql:3306/${MYSQL_DATABASE}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
     username: root

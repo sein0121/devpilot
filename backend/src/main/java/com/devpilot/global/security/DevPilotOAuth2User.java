@@ -6,12 +6,15 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 @Getter
-public class DevPilotOAuth2User implements OAuth2User {
+public class DevPilotOAuth2User implements OAuth2User, Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private final Long userId;
     private final String email;

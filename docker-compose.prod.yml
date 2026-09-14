@@ -9,6 +9,12 @@ services:
       - mysql_data:/var/lib/mysql
     ports:
       - "127.0.0.1:3306:3306"  # 외부 노출 안 함, 서버 내부에서만 접근 가능
+  
+  redis:
+    image: redis:7-alpine
+    restart: always
+    mem_limit: 100m
+    command: redis-server --maxmemory 80mb --maxmemory-policy allkeys-lru
 
   backend:
     image: ghcr.io/sein0121/devpilot-backend:latest
@@ -18,6 +24,7 @@ services:
     restart: always
     depends_on:
       - mysql
+      - redis
     environment:
       SPRING_PROFILES_ACTIVE: prod
       MYSQL_DATABASE: ${MYSQL_DATABASE}
