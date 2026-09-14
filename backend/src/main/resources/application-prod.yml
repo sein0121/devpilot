@@ -54,3 +54,8 @@ gemini:
   api:
     key: ${GEMINI_API_KEY}
     model: gemini-3.6-flash
+
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
