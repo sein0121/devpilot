@@ -1,0 +1,30 @@
+#!/bin/bash
+set -e
+
+# Docker 설치
+curl -fsSL https://get.docker.com | sh
+usermod -aG docker ubuntu
+
+# .env 생성
+mkdir -p /home/ubuntu/devpilot
+cat > /home/ubuntu/devpilot/.env <<EOF
+MYSQL_DATABASE=${mysql_database}
+MYSQL_ROOT_PASSWORD=${mysql_root_password}
+GITHUB_CLIENT_ID=${github_client_id}
+GITHUB_CLIENT_SECRET=${github_client_secret}
+GITHUB_PAT=${github_pat}
+GEMINI_API_KEY=${gemini_api_key}
+FRONTEND_URL=${frontend_url}
+EOF
+
+# 이미지 pull 후 실행 (docker-compose 없이 단일 컨테이너로, DB/Redis는 외부 접속이므로)
+docker run -d \
+  --name devpilot-backend \
+  --restart always \
+  --env-file /home/ubuntu/devpilot/.env \
+  -e SPRING_PROFILES_ACTIVE=prod \
+  -e SPRING_DATA_REDIS_HOST=${db_host} \
+  -e SPRING_DATASOURCE_URL="jdbc:mysql://${db_host}:3306/${mysql_database}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul" \
+  -p 8080:8080 \
+  --memory 400m \
+  ${ghcr_image}
