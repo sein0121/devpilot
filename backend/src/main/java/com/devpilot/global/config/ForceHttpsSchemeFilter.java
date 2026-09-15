@@ -26,6 +26,10 @@ public class ForceHttpsSchemeFilter implements Filter {
             public boolean isSecure() {
                 return true;
             }
+            @Override
+            public int getServerPort() {
+                return 443;
+            }
         };
         chain.doFilter(wrapped, response);
     }
