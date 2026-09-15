@@ -8,13 +8,15 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     ports:
-      - "127.0.0.1:3306:3306"  # 외부 노출 안 함, 서버 내부에서만 접근 가능
+      - "172.31.40.181:3306:3306"  # 프라이빗 IP로 바인딩, ASG의 backend들이 접근
   
   redis:
     image: redis:7-alpine
     restart: always
     mem_limit: 100m
     command: redis-server --maxmemory 80mb --maxmemory-policy allkeys-lru
+    ports:
+      - "172.31.40.181:6379:6379" # 프라이빗 IP로 바인딩, ASG의 backend들이 접근
 
   backend:
     image: ghcr.io/sein0121/devpilot-backend:latest
