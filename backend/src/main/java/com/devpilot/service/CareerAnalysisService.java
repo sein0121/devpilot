@@ -3,7 +3,10 @@ package com.devpilot.service;
 import com.devpilot.domain.CareerAnalysis;
 import com.devpilot.dto.response.CareerAnalysisResponse;
 import com.devpilot.global.exception.CareerAnalysisNotFoundException;
+import com.devpilot.global.exception.GithubAccountRequiredException;
 import com.devpilot.repository.CareerAnalysisRepository;
+import com.devpilot.repository.GithubAccountRepository;
+import com.devpilot.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -15,8 +18,12 @@ public class CareerAnalysisService {
     private final CareerAnalysisRepository repository;
     private final CareerAnalysisWriter writer;
     private final CareerAnalysisJobRunner jobRunner;
+    private final UserRepository userRepository;
+    private final GithubAccountRepository githubAccountRepository;
 
     public CareerAnalysisResponse triggerAndAccept(Long userId, String idempotencyKey) {
+        validateGithubLinked(userId);
+
         CareerAnalysis analysis;
         boolean created;
 
@@ -36,12 +43,20 @@ public class CareerAnalysisService {
         return CareerAnalysisResponse.from(analysis);
     }
 
+    private void validateGithubLinked(Long userId) {
+        userRepository.findById(userId).ifPresent(user -> {
+            if (githubAccountRepository.findByUser(user).isEmpty()) {
+                throw new GithubAccountRequiredException();
+            }
+        });
+    }
+
     public CareerAnalysisResponse getOwned(Long userId, Long id) {
         CareerAnalysis analysis = repository.findById(id)
                 .orElseThrow(() -> new CareerAnalysisNotFoundException(id));
 
         if (!analysis.getUserId().equals(userId)) {
-            throw new CareerAnalysisNotFoundException(id); // 403 대신 404 — 존재 여부 비노출
+            throw new CareerAnalysisNotFoundException(id);
         }
 
         return CareerAnalysisResponse.from(analysis);

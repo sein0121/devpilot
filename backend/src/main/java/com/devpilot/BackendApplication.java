@@ -6,8 +6,9 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 
 import com.devpilot.global.config.GithubProperties;
 import com.devpilot.global.config.GeminiProperties;
+import com.devpilot.global.config.CareerAnalysisProperties;
 
-@EnableConfigurationProperties({GithubProperties.class, GeminiProperties.class})
+@EnableConfigurationProperties({GithubProperties.class, GeminiProperties.class, CareerAnalysisProperties.class})
 @SpringBootApplication
 public class BackendApplication {
 

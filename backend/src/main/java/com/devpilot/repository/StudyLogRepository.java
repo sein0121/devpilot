@@ -11,4 +11,5 @@ import java.util.Optional;
 public interface StudyLogRepository extends JpaRepository<StudyLog, Long> {
     Optional<StudyLog> findByUserAndDate(User user, LocalDate date);
     List<StudyLog> findByUserOrderByDateDesc(User user);
+    List<StudyLog> findByUserAndDateBetweenOrderByDateDesc(User user, LocalDate start, LocalDate end);
 }
