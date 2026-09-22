@@ -44,3 +44,22 @@ dependencies {
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+tasks.named('bootRun') {
+    doFirst {
+        def envFile = file("${rootDir}/../.env")
+        if (envFile.exists()) {
+            envFile.readLines().each { line ->
+                line = line.trim()
+                if (line && !line.startsWith('#') && line.contains('=')) {
+                    def idx = line.indexOf('=')
+                    def key = line.substring(0, idx).trim()
+                    def value = line.substring(idx + 1).trim()
+                    environment(key, value)
+                }
+            }
+        } else {
+            logger.warn("'.env' file not found at ${envFile.path} — relying on existing environment variables.")
+        }
+    }
+}
