@@ -5,6 +5,7 @@ const TILES = [
   { to: '/skills', icon: '/icons/skills.png', title: 'Skills', desc: '보유 기술과 학습 중인 스택을 정리하세요.' },
   { to: '/study-log', icon: '/icons/studylog.png', title: 'Study', desc: '오늘 배운 내용을 짧게 기록해 두세요.' },
   { to: '/roadmap', icon: '/icons/roadmap.png', title: 'Roadmap', desc: '목표를 단계로 나누고 진행률을 따라가세요.' },
+  { to: '/career-analysis', icon: '/icons/career-analysis.png', title: 'Career Analysis', desc: 'AI가 강점과 부족한 부분을 짚어드려요.' },
 ];
 
 export function HomePage() {

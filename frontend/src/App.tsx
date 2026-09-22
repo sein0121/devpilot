@@ -9,6 +9,7 @@ import { StudyLogPage } from './pages/StudyLogPage';
 import { RoadmapPage } from './pages/RoadmapPage';
 import { ProtectedRoute } from './routes/ProtectedRoute';
 import { AppLayout } from './layouts/AppLayout';
+import { CareerAnalysisPage } from './pages/CareerAnalysisPage';
 
 const queryClient = new QueryClient();
 
@@ -32,6 +33,7 @@ export function App() {
             <Route path="/skills" element={<SkillsPage />} />
             <Route path="/study-log" element={<StudyLogPage />} />
             <Route path="/roadmap" element={<RoadmapPage />} />
+            <Route path="/career-analysis" element={<CareerAnalysisPage />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />

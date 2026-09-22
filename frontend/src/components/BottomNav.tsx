@@ -5,6 +5,7 @@ const NAV_ITEMS = [
   { to: '/skills', icon: '/icons/skills.png', label: 'Skills' },
   { to: '/study-log', icon: '/icons/studylog.png', label: 'Study' },
   { to: '/roadmap', icon: '/icons/roadmap.png', label: 'Roadmap' },
+  { to: '/career-analysis', icon: '/icons/career-analysis.png', label: 'Career' },
 ];
 
 export function BottomNav() {
