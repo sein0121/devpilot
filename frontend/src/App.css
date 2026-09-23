@@ -1277,8 +1277,9 @@ textarea {
   gap: 0.15rem;
   text-decoration: none;
   color: var(--text-muted);
-  padding: 0.4rem 0.7rem;
-  min-width: 64px;
+  padding: 0.4rem 0.35rem;
+  flex: 1;
+  min-width: 0;
   border-radius: 16px;
   transition: background 0.15s ease, color 0.15s ease;
 }

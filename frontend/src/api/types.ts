@@ -105,3 +105,41 @@ export interface AiRoadmapStepDraft {
 export interface AiRoadmapDraftResponse {
   steps: AiRoadmapStepDraft[];
 }
+
+export type CareerAnalysisStatus = 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED';
+
+export type CareerGapPriority = 'HIGH' | 'MEDIUM' | 'LOW';
+
+export interface CareerGapStrength {
+  title: string;
+  evidence: string;
+}
+
+export interface CareerGapItem {
+  skill: string;
+  reason: string;
+  priority: CareerGapPriority;
+}
+
+export interface CareerGapRecommendation {
+  title: string;
+  description: string;
+  relatedSkill: string;
+  priority: CareerGapPriority;
+}
+
+export interface CareerGapAnalysisResult {
+  summary: string;
+  strengths: CareerGapStrength[];
+  gaps: CareerGapItem[];
+  recommendations: CareerGapRecommendation[];
+}
+
+export interface CareerAnalysisResponse {
+  id: number;
+  status: CareerAnalysisStatus;
+  result: string | null; // JSON 문자열 — 프론트에서 JSON.parse 필요
+  errorMessage: string | null;
+  startedAt: string | null;
+  completedAt: string | null;
+}
