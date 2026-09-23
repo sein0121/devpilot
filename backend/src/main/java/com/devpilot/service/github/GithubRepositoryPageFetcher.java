@@ -1,52 +1,39 @@
 package com.devpilot.service.github;
 
 import com.devpilot.dto.github.GithubRepoApiResponse;
-import com.devpilot.dto.github.GithubUserApiResponse;
 import com.devpilot.global.exception.GithubApiAuthException;
 import com.devpilot.global.exception.GithubApiClientException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class GithubRestApiService {
+class GithubRepositoryPageFetcher {
 
     private static final int PER_PAGE = 100;
-    private static final int MAX_PAGES = 5;
 
     private final RestClient githubRestClient;
-    private final GithubRepositoryPageFetcher pageFetcher;
 
     @Retry(name = "github")
     @CircuitBreaker(name = "github")
-    public GithubUserApiResponse fetchUserProfile(String username) {
+    List<GithubRepoApiResponse> fetchPage(String username, int page) {
         try {
             return githubRestClient.get()
-                    .uri("/users/{username}", username)
+                    .uri("/users/{username}/repos?per_page={perPage}&sort=pushed&page={page}",
+                            username, PER_PAGE, page)
                     .retrieve()
-                    .body(GithubUserApiResponse.class);
+                    .body(new ParameterizedTypeReference<List<GithubRepoApiResponse>>() {});
         } catch (HttpClientErrorException.Unauthorized e) {
             throw new GithubApiAuthException();
         } catch (HttpClientErrorException e) {
             throw new GithubApiClientException("GitHub API 요청이 거부되었습니다: " + e.getStatusCode());
         }
-    }
-
-    public List<GithubRepoApiResponse> fetchRepositories(String username) {
-        List<GithubRepoApiResponse> result = new ArrayList<>();
-        for (int page = 1; page <= MAX_PAGES; page++) {
-            List<GithubRepoApiResponse> pageResult = pageFetcher.fetchPage(username, page);
-            if (pageResult.isEmpty()) break;
-            result.addAll(pageResult);
-            if (pageResult.size() < PER_PAGE) break;
-        }
-        return result;
     }
 }
