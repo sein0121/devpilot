@@ -39,10 +39,35 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-restclient'
 	implementation 'org.springframework.boot:spring-boot-starter-flyway'
 	implementation 'org.flywaydb:flyway-mysql'   // Flyway 7+부터 MySQL 지원이 core에서 분리됨, 필수
+
+	// Testcontainers
+    testImplementation platform('org.testcontainers:testcontainers-bom:1.20.4')
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:mysql'
+	testImplementation 'org.awaitility:awaitility:4.2.2'
+
+    // Mockito 명시적으로 추가 (기존 test 스타터에 포함되어 있는지 불확실하므로)
+    testImplementation 'org.mockito:mockito-core'
+    testImplementation 'org.mockito:mockito-junit-jupiter'
 }
 
 tasks.named('test') {
-	useJUnitPlatform()
+    useJUnitPlatform()
+    doFirst {
+        def envFile = file("${rootDir}/../.env")
+        if (envFile.exists()) {
+            envFile.readLines().each { line ->
+                line = line.trim()
+                if (line && !line.startsWith('#') && line.contains('=')) {
+                    def idx = line.indexOf('=')
+                    def key = line.substring(0, idx).trim()
+                    def value = line.substring(idx + 1).trim()
+                    environment(key, value)
+                }
+            }
+        }
+    }
 }
 
 tasks.named('bootRun') {
