@@ -1,6 +1,7 @@
 package com.devpilot.service;
 
 import com.devpilot.domain.CareerAnalysis;
+import com.devpilot.domain.User;
 import com.devpilot.dto.response.CareerAnalysisResponse;
 import com.devpilot.global.exception.CareerAnalysisNotFoundException;
 import com.devpilot.global.exception.GithubAccountRequiredException;
@@ -20,9 +21,11 @@ public class CareerAnalysisService {
     private final CareerAnalysisJobRunner jobRunner;
     private final UserRepository userRepository;
     private final GithubAccountRepository githubAccountRepository;
+    private final CareerAnalysisMetrics metrics;
 
     public CareerAnalysisResponse triggerAndAccept(Long userId, String idempotencyKey) {
         validateGithubLinked(userId);
+        metrics.recordRequested();
 
         CareerAnalysis analysis;
         boolean created;
@@ -37,7 +40,8 @@ public class CareerAnalysisService {
         }
 
         if (created) {
-            jobRunner.runAnalysis(analysis.getId());
+            metrics.incrementQueueSize();
+            jobRunner.runAnalysis(analysis.getId(), analysis.getCreatedAt());
         }
 
         return CareerAnalysisResponse.from(analysis);
