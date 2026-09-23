@@ -5,6 +5,7 @@ import com.devpilot.global.config.CareerAnalysisProperties;
 import com.devpilot.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -37,8 +38,8 @@ class RealCareerAnalysisDataCollector implements CareerAnalysisDataCollector {
         CareerGapAnalysisResult result = aiClient.analyze(context);
         return jsonSupport.toJson(result); // static 호출 → 인스턴스 메서드 호출로 변경
     }
-
-    private CareerAnalysisContext buildContext(Long userId) {
+    @Transactional(readOnly = true)
+    CareerAnalysisContext buildContext(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalStateException("User not found: " + userId));
 
@@ -99,7 +100,7 @@ class RealCareerAnalysisDataCollector implements CareerAnalysisDataCollector {
     private List<CareerAnalysisContext.StudyLogSummary> buildStudyLogSummaries(
         User user, LocalDate periodStart, LocalDate periodEnd
     ) {
-        return studyLogRepository.findByUserAndDateBetweenOrderByDateDesc(user, periodStart, periodEnd).stream()
+        return studyLogRepository.findByUserAndDateBetweenWithSkills(user, periodStart, periodEnd).stream()
                 .map(log -> new CareerAnalysisContext.StudyLogSummary(
                         log.getDate(),
                         log.getTitle(),
@@ -109,7 +110,7 @@ class RealCareerAnalysisDataCollector implements CareerAnalysisDataCollector {
     }
 
     private List<CareerAnalysisContext.SkillSummary> buildSkillSummaries(User user) {
-        return skillRepository.findByUserOrderByDisplayOrderAsc(user).stream()
+        return skillRepository.findByUserWithCategoryOrderByDisplayOrderAsc(user).stream()
                 .map(skill -> new CareerAnalysisContext.SkillSummary(
                         skill.getName(),
                         skill.getCategory() != null ? skill.getCategory().getName() : null,
@@ -123,7 +124,7 @@ class RealCareerAnalysisDataCollector implements CareerAnalysisDataCollector {
         return roadmapRepository.findByUserOrderByIdDesc(user).stream()
                 .map(roadmap -> {
                     List<CareerAnalysisContext.RoadmapSummary.RoadmapStepSummary> steps =
-                            roadmapStepRepository.findByRoadmapOrderByDisplayOrderAsc(roadmap).stream()
+                            roadmapStepRepository.findByRoadmapWithSkillOrderByDisplayOrderAsc(roadmap).stream()
                                     .map(step -> new CareerAnalysisContext.RoadmapSummary.RoadmapStepSummary(
                                             step.getTitle(),
                                             step.getStatus(),
