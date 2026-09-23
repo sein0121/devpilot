@@ -50,6 +50,9 @@ dependencies {
     // Mockito 명시적으로 추가 (기존 test 스타터에 포함되어 있는지 불확실하므로)
     testImplementation 'org.mockito:mockito-core'
     testImplementation 'org.mockito:mockito-junit-jupiter'
+
+	implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.3.0'
+    // implementation 'org.springframework.boot:spring-boot-starter-aop'
 }
 
 tasks.named('test') {

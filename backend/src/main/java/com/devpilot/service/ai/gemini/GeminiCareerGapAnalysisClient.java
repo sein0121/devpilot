@@ -6,13 +6,15 @@ import com.devpilot.global.exception.AiRateLimitException;
 import com.devpilot.service.ai.AiCareerGapAnalysisClient;
 import com.devpilot.service.ai.CareerAnalysisContext;
 import com.devpilot.service.ai.CareerGapAnalysisResult;
+import io.github.resilience4j.bulkhead.annotation.Bulkhead;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 import tools.jackson.databind.ObjectMapper;
 
@@ -75,6 +77,9 @@ public class GeminiCareerGapAnalysisClient implements AiCareerGapAnalysisClient 
     );
 
     @Override
+    @Retry(name = "gemini")
+    @CircuitBreaker(name = "gemini")
+    @Bulkhead(name = "gemini")
     public CareerGapAnalysisResult analyze(CareerAnalysisContext context) {
         String prompt = buildPrompt(context);
 
@@ -83,46 +88,27 @@ public class GeminiCareerGapAnalysisClient implements AiCareerGapAnalysisClient 
                 new GeminiRequest.GenerationConfig("application/json", RESULT_RESPONSE_SCHEMA)
         );
 
-        GeminiResponse response = callWithRetry(request);
+        GeminiResponse response = callGemini(request);
         String jsonText = extractText(response);
         return parseResult(jsonText);
     }
 
-    private GeminiResponse callWithRetry(GeminiRequest request) {
-        int maxAttempts = 2;
-        RuntimeException lastError = null;
-
-        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
-            try {
-                return geminiRestClient.post()
-                        .uri("/models/{model}:generateContent", geminiProperties.model())
-                        .body(request)
-                        .retrieve()
-                        .body(GeminiResponse.class);
-            } catch (HttpClientErrorException.TooManyRequests e) {
-                throw new AiRateLimitException();
-            } catch (ResourceAccessException e) {
-                log.error("Gemini 연결 실패 (attempt {})", attempt, e);
-                lastError = new AiApiException("AI 서버 연결이 지연되고 있습니다.");
-            } catch (Exception e) {
-                log.error("Gemini 호출 실패 (attempt {})", attempt, e);
-                lastError = new AiApiException("AI 응답을 받아오는 데 실패했습니다.");
-            }
-
-            if (attempt < maxAttempts) {
-                sleepBeforeRetry();
-            }
-        }
-
-        throw lastError;
-    }
-
-    private void sleepBeforeRetry() {
+    private GeminiResponse callGemini(GeminiRequest request) {
         try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+            return geminiRestClient.post()
+                    .uri("/models/{model}:generateContent", geminiProperties.model())
+                    .body(request)
+                    .retrieve()
+                    .body(GeminiResponse.class);
+        } catch (HttpClientErrorException.TooManyRequests e) {
+            throw new AiRateLimitException();
+        } catch (HttpClientErrorException e) {
+            log.error("Gemini 클라이언트 오류: {}", e.getStatusCode(), e);
+            throw new AiApiException("AI 요청이 거부되었습니다: " + e.getStatusCode());
         }
+        // ResourceAccessException(타임아웃/연결 실패), HttpServerErrorException(5xx)은
+        // application.yml의 resilience4j.retry.instances.gemini.retry-exceptions 대상이라
+        // 여기서 잡지 않고 그대로 던져 Resilience4j가 재시도/CircuitBreaker 판단하게 둔다.
     }
 
     private String extractText(GeminiResponse response) {
@@ -199,18 +185,13 @@ public class GeminiCareerGapAnalysisClient implements AiCareerGapAnalysisClient 
                 주요 레포지토리:
                 %s
                 """.formatted(
-                github.githubUsername(),
-                github.totalContributionsInPeriod(),
-                github.activeDaysInPeriod(),
-                languages,
-                repos
+                github.githubUsername(), github.totalContributionsInPeriod(), github.activeDaysInPeriod(),
+                languages, repos
         );
     }
 
     private String formatStudyLogs(List<CareerAnalysisContext.StudyLogSummary> studyLogs) {
-        if (studyLogs.isEmpty()) {
-            return "(학습 기록 없음)";
-        }
+        if (studyLogs.isEmpty()) return "(학습 기록 없음)";
         return studyLogs.stream()
                 .map(log -> "- [" + log.logDate() + "] " + log.title()
                         + (log.relatedSkillNames().isEmpty() ? "" : " (관련 기술: " + String.join(", ", log.relatedSkillNames()) + ")"))
@@ -218,9 +199,7 @@ public class GeminiCareerGapAnalysisClient implements AiCareerGapAnalysisClient 
     }
 
     private String formatSkills(List<CareerAnalysisContext.SkillSummary> skills) {
-        if (skills.isEmpty()) {
-            return "(등록된 기술 없음)";
-        }
+        if (skills.isEmpty()) return "(등록된 기술 없음)";
         return skills.stream()
                 .map(s -> "- " + s.name() + (s.categoryName() != null ? " [" + s.categoryName() + "]" : "")
                         + " (" + s.status() + ", 숙련도 " + s.proficiency() + "/5)")
@@ -228,9 +207,7 @@ public class GeminiCareerGapAnalysisClient implements AiCareerGapAnalysisClient 
     }
 
     private String formatRoadmaps(List<CareerAnalysisContext.RoadmapSummary> roadmaps) {
-        if (roadmaps.isEmpty()) {
-            return "(등록된 로드맵 없음)";
-        }
+        if (roadmaps.isEmpty()) return "(등록된 로드맵 없음)";
         return roadmaps.stream()
                 .map(r -> "- " + r.roadmapTitle() + "\n" +
                         r.steps().stream()
