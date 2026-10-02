@@ -25,6 +25,8 @@ docker run -d \
   -e SPRING_PROFILES_ACTIVE=prod \
   -e SPRING_DATA_REDIS_HOST=${db_host} \
   -e SPRING_DATASOURCE_URL="jdbc:mysql://${db_host}:3306/${mysql_database}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul" \
+  -e JAVA_TOOL_OPTIONS="-Xmx170m -XX:ReservedCodeCacheSize=48m -XX:MaxMetaspaceSize=150m -Xss256k -XX:+ExitOnOutOfMemoryError" \
   -p 8080:8080 \
-  --memory 400m \
+  -p 9090:9090 \
+  --memory 550m \
   ${ghcr_image}

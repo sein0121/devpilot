@@ -35,6 +35,15 @@ resource "aws_security_group" "asg_backend" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  # Observability — 내 IP에서만 Actuator/Prometheus 접근 (6단계 한시적)
+  ingress {
+    description = "Prometheus scraping from local PC only"
+    from_port   = 9090
+    to_port     = 9090
+    protocol    = "tcp"
+    cidr_blocks = ["220.80.165.109/32"]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -136,10 +145,10 @@ resource "aws_lb_target_group" "backend" {
 
   health_check {
     path                = "/api/health"
-    interval            = 15
-    timeout             = 5
+    interval            = 30
+    timeout             = 10
     healthy_threshold   = 2
-    unhealthy_threshold = 3
+    unhealthy_threshold = 5
   }
 }
 
@@ -187,15 +196,15 @@ resource "aws_autoscaling_group" "backend" {
 }
 
 # ── 타겟 추적 스케일링 정책 (CPU 기준) ──
-resource "aws_autoscaling_policy" "cpu_target" {
-  name                   = "devpilot-cpu-target-tracking"
-  autoscaling_group_name = aws_autoscaling_group.backend.name
-  policy_type            = "TargetTrackingScaling"
-
-  target_tracking_configuration {
-    predefined_metric_specification {
-      predefined_metric_type = "ASGAverageCPUUtilization"
-    }
-    target_value = 50.0
-  }
-}
+# resource "aws_autoscaling_policy" "cpu_target" {
+#   name                   = "devpilot-cpu-target-tracking"
+#   autoscaling_group_name = aws_autoscaling_group.backend.name
+#   policy_type            = "TargetTrackingScaling"
+#
+#   target_tracking_configuration {
+#     predefined_metric_specification {
+#       predefined_metric_type = "ASGAverageCPUUtilization"
+#     }
+#     target_value = 50.0
+#   }
+# }
