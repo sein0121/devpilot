@@ -10,3 +10,4 @@ public class GithubApiClientException extends BusinessException {
         super(HttpStatus.BAD_GATEWAY, message);
     }
 }
+

@@ -7,6 +7,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.servlet.NoHandlerFoundException;
+import io.github.resilience4j.bulkhead.BulkheadFullException;
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
+import org.springframework.web.client.RestClientException;
 
 import com.devpilot.global.response.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -59,5 +62,21 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.NOT_FOUND)
                 .body(ApiResponse.error("요청하신 경로를 찾을 수 없습니다."));
     }
+
+    @ExceptionHandler({CallNotPermittedException.class, BulkheadFullException.class})
+        public ResponseEntity<ApiResponse<Void>> handleExternalApiUnavailable(Exception exception) {
+        log.warn("외부 API 호출 차단: {}", exception.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(ApiResponse.error("외부 서비스가 일시적으로 응답하지 않습니다. 잠시 후 다시 시도해 주세요."));
+        }
+
+        @ExceptionHandler(RestClientException.class)
+        public ResponseEntity<ApiResponse<Void>> handleExternalApiFailure(RestClientException exception) {
+        log.error("외부 API 호출 실패", exception);
+        return ResponseEntity
+                .status(HttpStatus.BAD_GATEWAY)
+                .body(ApiResponse.error("외부 서비스 호출에 실패했습니다."));
+        }
 
 }

@@ -5,6 +5,10 @@ import com.devpilot.global.exception.AiApiException;
 import com.devpilot.global.exception.AiRateLimitException;
 import com.devpilot.service.ai.AiRoadmapDraftClient;
 import com.devpilot.service.ai.AiStepDraft;
+
+import io.github.resilience4j.bulkhead.annotation.Bulkhead;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import tools.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -12,7 +16,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.ResourceAccessException;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDate;
@@ -49,6 +52,9 @@ public class GeminiRoadmapDraftClient implements AiRoadmapDraftClient {
     );
 
     @Override
+    @Retry(name = "geminiDraft")      // 재시도 정책만 따로
+    @CircuitBreaker(name = "gemini")  // 차단기·동시성 제한은 커리어 분석과 공유
+    @Bulkhead(name = "gemini")
     public List<AiStepDraft> generateDraft(String goal, LocalDate targetDate, List<String> existingSkillNames) {
         String prompt = buildPrompt(goal, targetDate, existingSkillNames);
 
@@ -57,8 +63,7 @@ public class GeminiRoadmapDraftClient implements AiRoadmapDraftClient {
                 new GeminiRequest.GenerationConfig("application/json", STEP_RESPONSE_SCHEMA)
         );
 
-        GeminiResponse response = callWithRetry(request);
-
+        GeminiResponse response = callGemini(request);
         String jsonText = extractText(response);
         GeminiStepsPayload payload = parsePayload(jsonText);
 
@@ -67,43 +72,23 @@ public class GeminiRoadmapDraftClient implements AiRoadmapDraftClient {
                 .toList();
     }
 
-    private GeminiResponse callWithRetry(GeminiRequest request) {
-        int maxAttempts = 2;
-        RuntimeException lastError = null;
-
-        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
-            try {
-                return geminiRestClient.post()
-                        .uri("/models/{model}:generateContent", geminiProperties.model())
-                        .body(request)
-                        .retrieve()
-                        .body(GeminiResponse.class);
-            } catch (HttpClientErrorException.TooManyRequests e) {
-                throw new AiRateLimitException();
-            } catch (ResourceAccessException e) {
-                log.error("Gemini 연결 실패 (attempt {})", attempt, e); // 추가
-                lastError = new AiApiException("AI 서버 연결이 지연되고 있습니다.");
-            } catch (Exception e) {
-                log.error("Gemini 호출 실패 (attempt {})", attempt, e); // 추가
-                lastError = new AiApiException("AI 응답을 받아오는 데 실패했습니다.");
-            }
-
-            if (attempt < maxAttempts) {
-                sleepBeforeRetry();
-            }
-        }
-
-        throw lastError;
-    }
-    
-    private void sleepBeforeRetry() {
+    private GeminiResponse callGemini(GeminiRequest request) {
         try {
-            Thread.sleep(1000); // 1초 대기 후 재시도
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+            return geminiRestClient.post()
+                    .uri("/models/{model}:generateContent", geminiProperties.model())
+                    .body(request)
+                    .retrieve()
+                    .body(GeminiResponse.class);
+        } catch (HttpClientErrorException.TooManyRequests e) {
+            throw new AiRateLimitException();
+        } catch (HttpClientErrorException e) {
+            log.error("Gemini 클라이언트 오류: {}", e.getStatusCode(), e);
+            throw new AiApiException("AI 요청이 거부되었습니다: " + e.getStatusCode());
         }
+        // 5xx·연결 실패는 그대로 던져 Resilience4j가 판단
     }
 
+    
     private String extractText(GeminiResponse response) {
         if (response == null || response.candidates() == null || response.candidates().isEmpty()) {
             throw new AiApiException("AI로부터 빈 응답을 받았습니다.");

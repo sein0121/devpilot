@@ -39,3 +39,4 @@ gemini:
   api:
     key: test-key
     model: gemini-3.6-flash
+    base-url: http://localhost:1
