@@ -51,5 +51,5 @@ jobs:
             cd ~/devpilot
             git pull
             docker compose -f docker-compose.prod.yml pull backend
-            docker compose -f docker-compose.prod.yml up -d --force-recreate backend redis
+            docker compose -f docker-compose.prod.yml up -d --no-deps --force-recreate backend
             docker image prune -f
